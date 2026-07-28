@@ -31,8 +31,8 @@
 
       <!-- Sección de Cuenta Estilo Microsoft ID -->
       <div class="account-actions">
-        <a href="#login" class="btn-text">Iniciar sesión</a>
-        <a href="#register" class="btn-ms-primary">Crear cuenta</a>
+        <button id="show-login" class="btn-text">Iniciar sesión</button>
+        <button id="show-register" class="btn-ms-primary">Crear cuenta</button>
       </div>
     </div>
   </nav>
@@ -48,7 +48,7 @@
       
       <div class="hero-buttons">
         <a href="#download" class="btn btn-ms-primary btn-lg">Descargar para Windows</a>
-        <a href="#register" class="btn btn-ms-secondary btn-lg">Crear una Bro Account</a>
+        <button id="hero-register" class="btn btn-ms-secondary btn-lg">Crear una Bro Account</button>
       </div>
     </div>
 
@@ -75,7 +75,7 @@
     </div>
   </header>
 
-  <!-- Características Fluent Grid -->
+  <!-- Grid de Funciones -->
   <section class="features" id="features">
     <h2>Diseñado para el <span class="highlight-text">desempeño y la simplicidad</span></h2>
     <div class="grid">
@@ -122,5 +122,74 @@
     </div>
   </footer>
 
+  <!-- =============================================== -->
+  <!-- VENTANAS MODALES FLUENT (LOGIN/REGISTER) -->
+  <!-- =============================================== -->
+
+  <!-- Modal de Login -->
+  <div id="modal-login" class="fluent-modal hidden">
+    <div class="modal-overlay"></div>
+    <div class="fluent-window modal-content">
+      <div class="window-header">
+        <div class="window-title"><span class="app-icon">🆔</span> Iniciar sesión con Bro Account</div>
+        <div class="window-controls">
+          <button class="win-btn close-modal"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <form id="form-login">
+          <div class="form-group">
+            <label for="login-username">Nombre de usuario</label>
+            <input type="text" id="login-username" name="username" placeholder="ej: TuringBro" required>
+          </div>
+          <div class="form-group">
+            <label for="login-password">Contraseña</label>
+            <input type="password" id="login-password" name="password" placeholder="••••••••" required>
+          </div>
+          <div id="login-message" class="form-message hidden"></div>
+          <div class="form-actions">
+            <button type="submit" class="btn-ms-primary">Iniciar sesión</button>
+            <button type="button" class="btn-text show-register-alt">Crear nueva cuenta</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Registro -->
+  <div id="modal-register" class="fluent-modal hidden">
+    <div class="modal-overlay"></div>
+    <div class="fluent-window modal-content">
+      <div class="window-header">
+        <div class="window-title"><span class="app-icon">🆕</span> Crear Bro Account</div>
+        <div class="window-controls">
+          <button class="win-btn close-modal"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <form id="form-register">
+          <div class="form-group">
+            <label for="register-username">Nombre de usuario</label>
+            <input type="text" id="register-username" name="username" placeholder="min 3 caracteres" required minlength="3">
+          </div>
+          <div class="form-group">
+            <label for="register-password">Contraseña</label>
+            <input type="password" id="register-password" name="password" placeholder="min 6 caracteres" required minlength="6">
+          </div>
+          <div class="form-group">
+            <label for="register-confirm">Confirmar contraseña</label>
+            <input type="password" id="register-confirm" name="confirm" placeholder="••••••••" required>
+          </div>
+          <div id="register-message" class="form-message hidden"></div>
+          <div class="form-actions">
+            <button type="submit" class="btn-ms-primary">Crear cuenta</button>
+            <button type="button" class="btn-text show-login-alt">Ya tengo cuenta</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
