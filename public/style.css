@@ -1,13 +1,20 @@
 :root {
-  --ms-bg: #202020;
-  --ms-card-bg: rgba(255, 255, 255, 0.05);
-  --ms-card-border: rgba(255, 255, 255, 0.08);
+  --ms-bg: #1a1a1a; /* Un poco más oscuro */
+  --ms-card-bg: rgba(255, 255, 255, 0.04);
+  --ms-card-border: rgba(255, 255, 255, 0.06);
   --ms-blue: #0078d4;
-  --ms-blue-hover: #106ebe;
+  --ms-blue-hover: #0086ed;
+  --ms-blue-disabled: #005a9e;
   --ms-text: #ffffff;
-  --ms-text-secondary: #adadad;
+  --ms-text-secondary: #c8c8c8;
+  --ms-error: #ff4343;
+  --ms-success: #4ade80;
+  
   --font-segoe: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   --font-code: 'Cascadia Code', Consolas, monospace;
+  
+  --shadow-fluent: 0 8px 16px rgba(0, 0, 0, 0.28), 0 0 2px rgba(0, 0, 0, 0.24);
+  --shadow-window: 0 32px 64px rgba(0, 0, 0, 0.45), 0 0 4px rgba(0, 0, 0, 0.2);
 }
 
 * {
@@ -30,11 +37,11 @@ body {
   position: fixed;
   top: 0;
   width: 100%;
-  background: rgba(32, 32, 32, 0.75);
+  background: rgba(26, 26, 26, 0.8);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--ms-card-border);
   z-index: 1000;
-  padding: 12px 0;
+  padding: 10px 0;
 }
 
 .nav-container {
@@ -53,7 +60,6 @@ body {
   font-size: 1.1rem;
 }
 
-/* Logo Estilo Ventanas de Microsoft */
 .win-logo {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -76,7 +82,7 @@ body {
   color: var(--ms-text-secondary);
   text-decoration: none;
   font-size: 0.9rem;
-  transition: color 0.2s;
+  transition: color 0.15s;
 }
 
 .nav-links a:hover {
@@ -87,44 +93,54 @@ body {
 .account-actions {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
+}
+
+/* Botones Globales Fluent */
+button, .btn {
+  cursor: pointer;
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: 4px;
+  transition: all 0.15s ease;
 }
 
 .btn-text {
+  background: transparent;
   color: var(--ms-text);
-  text-decoration: none;
-  font-size: 0.9rem;
-  font-weight: 600;
+  padding: 8px 16px;
+}
+
+.btn-text:hover {
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .btn-ms-primary {
   background-color: var(--ms-blue);
-  color: #ffffff !important;
-  padding: 8px 18px;
-  border-radius: 4px;
-  text-decoration: none;
-  font-size: 0.9rem;
-  font-weight: 600;
-  transition: background 0.2s;
+  color: #ffffff;
+  padding: 8px 20px;
 }
 
 .btn-ms-primary:hover {
   background-color: var(--ms-blue-hover);
 }
 
+.btn-ms-primary:disabled {
+  background-color: var(--ms-blue-disabled);
+  cursor: not-allowed;
+}
+
 .btn-ms-secondary {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
   color: var(--ms-text);
-  border: 1px solid var(--ms-card-border);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   padding: 12px 24px;
-  border-radius: 4px;
-  text-decoration: none;
-  font-weight: 600;
-  transition: background 0.2s;
 }
 
 .btn-ms-secondary:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 /* Hero Section */
@@ -139,30 +155,31 @@ body {
 }
 
 .fluent-badge {
-  background: rgba(0, 120, 212, 0.15);
+  background: rgba(0, 120, 212, 0.12);
   color: #60a5fa;
-  border: 1px solid rgba(0, 120, 212, 0.3);
-  padding: 4px 14px;
-  border-radius: 12px;
-  font-size: 0.85rem;
+  border: 1px solid rgba(0, 120, 212, 0.2);
+  padding: 5px 15px;
+  border-radius: 20px;
+  font-size: 0.8rem;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .badge-dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   background-color: #60a5fa;
   border-radius: 50%;
 }
 
 .hero h1 {
-  font-size: 3.2rem;
+  font-size: 3.5rem;
   font-weight: 600;
-  letter-spacing: -1px;
-  margin-bottom: 16px;
+  letter-spacing: -1.5px;
+  margin-bottom: 20px;
+  line-height: 1.1;
 }
 
 .highlight-text {
@@ -171,60 +188,81 @@ body {
 
 .hero p {
   color: var(--ms-text-secondary);
-  font-size: 1.15rem;
-  max-width: 680px;
-  margin-bottom: 32px;
+  font-size: 1.2rem;
+  max-width: 700px;
+  margin-bottom: 40px;
 }
 
 .hero-buttons {
   display: flex;
   gap: 16px;
   justify-content: center;
-  margin-bottom: 50px;
+  margin-bottom: 60px;
+}
+
+.btn-lg {
+  padding: 14px 30px;
+  font-size: 1rem;
 }
 
 /* Ventana estilo Windows 11 (Fluent) */
 .fluent-window {
   width: 100%;
   max-width: 780px;
-  background: rgba(30, 30, 30, 0.85);
-  backdrop-filter: blur(25px);
+  background: rgba(35, 35, 35, 0.8);
+  backdrop-filter: blur(20px);
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: var(--shadow-window);
   text-align: left;
   overflow: hidden;
 }
 
 .window-header {
-  background: rgba(255, 255, 255, 0.03);
-  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 8px 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 .window-title {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--ms-text-secondary);
   display: flex;
   align-items: center;
   gap: 8px;
+  font-weight: 400;
 }
 
 .window-controls {
   display: flex;
-  gap: 16px;
-  font-size: 0.8rem;
+  gap: 0;
+  font-size: 0.75rem;
   color: var(--ms-text-secondary);
+}
+
+.win-btn {
+  background: transparent;
+  padding: 6px 12px;
+  border-radius: 0;
+}
+
+.win-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.win-btn.close:hover {
+  background: #e81123;
+  color: white;
 }
 
 .window-body {
   padding: 24px;
   font-family: var(--font-code);
   font-size: 0.9rem;
-  background: #0c0c0c;
+  background: #000000;
 }
 
 .prompt { color: #60a5fa; }
@@ -240,39 +278,43 @@ body {
 }
 
 .features h2 {
-  font-size: 2.2rem;
+  font-size: 2.5rem;
   font-weight: 600;
-  margin-bottom: 48px;
+  margin-bottom: 50px;
 }
 
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
+  gap: 24px;
 }
 
 .card {
   background: var(--ms-card-bg);
   border: 1px solid var(--ms-card-border);
-  padding: 32px 24px;
+  padding: 35px 25px;
   border-radius: 8px;
   text-align: left;
-  transition: transform 0.2s, background 0.2s;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .card:hover {
   transform: translateY(-4px);
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(0, 120, 212, 0.3);
+  box-shadow: var(--shadow-fluent);
 }
 
 .card-icon {
   font-size: 2rem;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+  color: var(--ms-blue);
 }
 
 .card h3 {
-  font-size: 1.2rem;
-  margin-bottom: 8px;
+  font-size: 1.3rem;
+  margin-bottom: 10px;
 }
 
 .card p {
@@ -288,52 +330,55 @@ body {
 }
 
 .brotalk-card {
-  background: linear-gradient(135deg, rgba(0, 120, 212, 0.15) 0%, rgba(20, 20, 20, 0.8) 100%);
-  border: 1px solid rgba(0, 120, 212, 0.3);
-  padding: 48px;
+  background: linear-gradient(135deg, rgba(0, 120, 212, 0.1) 0%, rgba(20, 20, 20, 0.6) 100%);
+  border: 1px solid rgba(0, 120, 212, 0.2);
+  padding: 50px;
   border-radius: 12px;
+  box-shadow: var(--shadow-fluent);
 }
 
 .sub-title {
   color: var(--ms-blue);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
 }
 
 .brotalk-info h2 {
-  font-size: 2rem;
+  font-size: 2.2rem;
   margin: 10px 0;
 }
 
 .brotalk-info p {
   color: var(--ms-text-secondary);
   max-width: 600px;
-  margin-bottom: 24px;
+  margin-bottom: 30px;
 }
 
 .account-preview {
   display: flex;
   align-items: center;
   gap: 16px;
-  background: rgba(0, 0, 0, 0.3);
-  padding: 12px 20px;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 15px 25px;
   border-radius: 8px;
   width: fit-content;
   border: 1px solid var(--ms-card-border);
 }
 
 .avatar {
-  width: 40px;
-  height: 40px;
+  width: 45px;
+  height: 45px;
   background-color: var(--ms-blue);
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
   font-weight: bold;
+  font-size: 1.2rem;
 }
 
+.avatar-info strong { font-size: 1rem; }
 .avatar-info span {
   display: block;
   font-size: 0.8rem;
@@ -343,8 +388,120 @@ body {
 /* Footer */
 footer {
   border-top: 1px solid var(--ms-card-border);
-  padding: 32px 24px;
+  padding: 40px 24px;
   text-align: center;
   color: var(--ms-text-secondary);
   font-size: 0.85rem;
 }
+
+/* =============================================== */
+/* MODALES Y FORMULARIOS FLUENT */
+/* =============================================== */
+
+.fluent-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.fluent-modal.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.modal-overlay {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.modal-content {
+  position: relative;
+  max-width: 450px; /* Ventana más pequeña */
+  z-index: 1;
+  transform: scale(0.9) translateY(20px);
+  transition: transform 0.3s ease;
+}
+
+.fluent-modal:not(.hidden) .modal-content {
+  transform: scale(1) translateY(0);
+}
+
+/* Diseño de Formulario Fluent */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+  color: var(--ms-text);
+  font-weight: 400;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.5); /* Fluent underline */
+  color: var(--ms-text);
+  font-size: 0.95rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.form-group input:focus {
+  outline: none;
+  background: rgba(0, 0, 0, 0.5);
+  border-bottom-color: var(--ms-blue);
+}
+
+.form-group input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.form-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 30px;
+  align-items: center;
+}
+
+.form-actions button {
+  width: 100%;
+}
+
+/* Mensajes de error/éxito */
+.form-message {
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.form-message.error {
+  background: rgba(255, 67, 67, 0.1);
+  color: var(--ms-error);
+  border: 1px solid rgba(255, 67, 67, 0.3);
+}
+
+.form-message.success {
+  background: rgba(74, 222, 128, 0.1);
+  color: var(--ms-success);
+  border: 1px solid rgba(74, 222, 128, 0.3);
+}
+
+.hidden { display: none !important; }
