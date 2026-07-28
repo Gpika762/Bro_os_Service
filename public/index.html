@@ -3,106 +3,123 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bro OS - El Sistema Operativo del Futuro</title>
+  <title>Bro OS - Experiencia Diseñada para Ti</title>
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@300;500;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@300;400;600;700&family=Cascadia+Code:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
 
-  <!-- Navegación -->
+  <!-- Navegación Estilo Fluent Microsoft -->
   <nav class="navbar">
-    <div class="logo">
-      <span class="logo-icon">💻</span> BRO<span>.OS</span>
+    <div class="nav-container">
+      <div class="logo">
+        <div class="win-logo">
+          <span></span><span></span>
+          <span></span><span></span>
+        </div>
+        <strong>Bro OS</strong>
+      </div>
+      
+      <ul class="nav-links">
+        <li><a href="#about">Inicio</a></li>
+        <li><a href="#features">Funciones</a></li>
+        <li><a href="#brotalk">Bro Talk</a></li>
+        <li><a href="#download">Descargas</a></li>
+      </ul>
+
+      <!-- Sección de Cuenta Estilo Microsoft ID -->
+      <div class="account-actions">
+        <a href="#login" class="btn-text">Iniciar sesión</a>
+        <a href="#register" class="btn-ms-primary">Crear cuenta</a>
+      </div>
     </div>
-    <ul class="nav-links">
-      <li><a href="#about">Inicio</a></li>
-      <li><a href="#features">Características</a></li>
-      <li><a href="#brotalk">Bro Talk</a></li>
-      <li><a href="#download" class="btn-primary">Descargar</a></li>
-    </ul>
   </nav>
 
-  <!-- Hero Section -->
+  <!-- Hero Section estilo Windows 11 -->
   <header class="hero" id="about">
     <div class="hero-content">
-      <div class="badge">🚀 Versión 1.0.0 Alfa Disponible</div>
-      <h1>Tu experiencia digital, <br><span class="gradient-text">redefinida desde cero</span>.</h1>
-      <p>Bro OS es el sistema operativo diseñado para ofrecer rapidez, personalización total y una ecosistema de herramientas únicas integradas.</p>
+      <div class="fluent-badge">
+        <span class="badge-dot"></span> Bro OS v1.0 Insider Preview
+      </div>
+      <h1>El sistema operativo <br><span class="highlight-text">diseñado para rendir al máximo</span>.</h1>
+      <p>Una interfaz fluida, herramientas de comunicación en tiempo real y la potencia que necesitas. Descubre la nueva generación de Bro OS.</p>
       
       <div class="hero-buttons">
-        <a href="#download" class="btn btn-main">Obtener Bro OS</a>
-        <a href="#brotalk" class="btn btn-secondary">Probar Bro Talk</a>
+        <a href="#download" class="btn btn-ms-primary btn-lg">Descargar para Windows</a>
+        <a href="#register" class="btn btn-ms-secondary btn-lg">Crear una Bro Account</a>
       </div>
     </div>
 
-    <!-- Previsualización / Mockup de Bro OS -->
-    <div class="os-window">
+    <!-- Previsualización / Ventana Fluent OS -->
+    <div class="fluent-window">
       <div class="window-header">
-        <div class="window-dots">
-          <span class="dot red"></span>
-          <span class="dot yellow"></span>
-          <span class="dot green"></span>
+        <div class="window-title">
+          <span class="app-icon">🖥️</span> Bro OS Terminal
         </div>
-        <div class="window-title">Bro OS Terminal - v1.0.0</div>
+        <div class="window-controls">
+          <span class="win-btn min"></span>
+          <span class="win-btn max"></span>
+          <span class="win-btn close"></span>
+        </div>
       </div>
       <div class="window-body">
-        <p><span class="prompt">bro@os:~$</span> systemctl status bro-os</p>
-        <p class="success">● Bro OS Core: RUNNING</p>
-        <p class="success">● Bro Talk Engine: CONNECTED</p>
-        <p class="success">● Update Service: ONLINE</p>
-        <p><span class="prompt">bro@os:~$</span> echo "¡Bienvenido al sistema!"</p>
-        <p class="highlight">¡Bienvenido al sistema!</p>
+        <p><span class="prompt">PS C:\BroOS></span> Get-SystemStatus</p>
+        <p class="status-ok">✔ Bro OS Kernel: Active (v1.0.0)</p>
+        <p class="status-ok">✔ Bro Talk Service: Connected</p>
+        <p class="status-ok">✔ Identity Manager: Ready for Login</p>
+        <p><span class="prompt">PS C:\BroOS></span> Write-Host "¡Bienvenido a tu cuenta Bro OS!"</p>
+        <p class="highlight">¡Bienvenido a tu cuenta Bro OS!</p>
       </div>
     </div>
   </header>
 
-  <!-- Características -->
+  <!-- Características Fluent Grid -->
   <section class="features" id="features">
-    <h2>¿Qué hace único a <span>Bro OS</span>?</h2>
+    <h2>Diseñado para el <span class="highlight-text">desempeño y la simplicidad</span></h2>
     <div class="grid">
       <div class="card">
         <div class="card-icon">⚡</div>
-        <h3>Ultra Rápido</h3>
-        <p>Diseñado para ser ligero y exprimir al máximo el rendimiento de tu procesador sin procesos inútiles.</p>
+        <h3>Rendimiento Fluent</h3>
+        <p>Optimizado para consumir el mínimo de memoria RAM y responder al instante en cualquier equipo.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🆔</div>
+        <h3>Bro Account</h3>
+        <p>Un solo usuario y contraseña para sincronizar tu perfil, tus mensajes de Bro Talk y tus configuraciones.</p>
       </div>
       <div class="card">
         <div class="card-icon">💬</div>
-        <h3>Bro Talk Integrado</h3>
-        <p>Comunicación instantánea al estilo clásico, conectada en tiempo real mediante WebSockets.</p>
-      </div>
-      <div class="card">
-        <div class="card-icon">🔄</div>
-        <h3>Auto-Updates</h3>
-        <p>Mantente siempre al día con nuestro sistema de actualización automática en la nube vía Render.</p>
+        <h3>Bro Talk Network</h3>
+        <p>El mensajero oficial integrado al sistema para chatear con tus amigos en tiempo real.</p>
       </div>
     </div>
   </section>
 
-  <!-- Bro Talk Showcase -->
+  <!-- Bro Talk Section con UI de Cuenta -->
   <section class="brotalk-section" id="brotalk">
     <div class="brotalk-card">
-      <div class="brotalk-text">
-        <h2>Conéctate con <span class="gradient-text">Bro Talk</span></h2>
-        <p>El mensajero oficial del sistema operativo. Chatea en tiempo real con otros usuarios de Bro OS con baja latencia y la mejor vibra retro-moderna.</p>
-      </div>
-      <div class="brotalk-badge">
-        <span class="online-indicator"></span> Servidores Activos
+      <div class="brotalk-info">
+        <span class="sub-title">COMUNICACIÓN SIN LÍMITES</span>
+        <h2>Conecta tu <span>Bro Account</span> a Bro Talk</h2>
+        <p>Inicia sesión desde tu sistema Bro OS o desde la web para chatear al instante con el clásico estilo de mensajería que te gusta.</p>
+        <div class="account-preview">
+          <div class="avatar">B</div>
+          <div class="avatar-info">
+            <strong>Usuario@bro.os</strong>
+            <span>En línea — Bro OS Desktop</span>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- Descarga -->
-  <section class="download-section" id="download">
-    <h2>¿Listo para probar <span>Bro OS</span>?</h2>
-    <p>Descarga la última versión de prueba y forma parte del desarrollo.</p>
-    <a href="#" class="btn btn-main btn-lg">Descargar para Windows (.exe)</a>
-  </section>
-
-  <!-- Footer -->
+  <!-- Footer estilo Microsoft -->
   <footer>
-    <p>© 2026 <strong>Bro OS Project</strong>. Desarrollado con pasión.</p>
+    <div class="footer-content">
+      <p>© 2026 <strong>Bro OS Corporation</strong>. Todos los derechos reservados.</p>
+    </div>
   </footer>
 
 </body>
