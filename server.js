@@ -14,9 +14,7 @@ const io = new Server(server, {
 
 const PORT = process.env.PORT || 3000;
 
-// ===============================================
-// MIDDLEWARES
-// ===============================================
+
 app.use(express.json()); // Necesario para leer JSON en POST requests
 app.use(express.static(path.join(__dirname, 'public')));
 
