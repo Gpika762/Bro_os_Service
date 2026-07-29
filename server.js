@@ -2,7 +2,6 @@ require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const path = require('path');
-const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const { Server } = require('socket.io');
 
@@ -14,35 +13,25 @@ const io = new Server(server, {
 
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json()); // Necesario para leer JSON en POST requests
+app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ===============================================
-// CONEXIÓN A BASE DE DATOS (MongoDB Atlas)
+// ALMACENAMIENTO LOCAL EN MEMORIA (Sin MongoDB)
 // ===============================================
-mongoose.connect(process.env.DATABASE_URL)
-  .then(() => console.log('✅ Conectado a MongoDB Atlas (Bro OS DB)'))
-  .catch(err => console.error('❌ Error de conexión a Mongo:', err));
+// Formato: { "nombreUsuario": { username: "...", password: "hashPassword", status: "offline", friends: [] } }
+const usersDB = new Map();
 
-// Esquema de Usuario (Actualizado con Estado y Amigos)
-const userSchema = new mongoose.Schema({
-  username: { type: String, required: true, unique: true, trim: true },
-  password: { type: String, required: true }, // Guardaremos el HASH, no la clave real
-  status: { type: String, default: 'offline' }, // online, offline, busy, away
-  friends: [{ type: String }], // Lista de usuarios agregados como amigos
-  createdAt: { type: Date, default: Date.now }
-});
-
-const User = mongoose.model('User', userSchema);
-
-// Diccionario en memoria para rastrear sockets activos: { username: socket.id }
+// Diccionario de sockets activos: { "nombreUsuario": "socket.id" }
 const activeSockets = new Map();
 
+console.log('⚡ Servidor iniciado en modo Local/Memoria (Sin MongoDB)');
+
 // ===============================================
-// 1. UPDATES - APARTADO PRIVADO (Con API Key)
+// 1. UPDATES - APARTADO PRIVADO
 // ===============================================
 const requireUpdateToken = (req, res, next) => {
-  const token = req.header('X-BroOS-Update-Token'); // La app C# debe enviar esta cabecera
+  const token = req.header('X-BroOS-Update-Token');
   if (!token || token !== process.env.UPDATE_API_KEY) {
     return res.status(403).json({ error: "Acceso denegado. Token de actualización inválido." });
   }
@@ -60,7 +49,7 @@ app.get('/api/updates/check', requireUpdateToken, (req, res) => {
 });
 
 // ===============================================
-// 2. CUENTAS - APARTADO PÚBLICO (MongoDB)
+// 2. CUENTAS - SISTEMA LOCAL
 // ===============================================
 
 // A. REGISTRO DE NUEVA CUENTA
@@ -72,18 +61,22 @@ app.post('/api/accounts/register', async (req, res) => {
       return res.status(400).json({ error: "Datos inválidos. Usuario (min 3) y Clave (min 6)." });
     }
 
-    const existingUser = await User.findOne({ username });
-    if (existingUser) {
+    if (usersDB.has(username.toLowerCase())) {
       return res.status(409).json({ error: "Ese nombre de usuario ya está pillado, bro." });
     }
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const newUser = new User({ username, password: hashedPassword });
-    await newUser.save();
+    // Guardar usuario en memoria
+    usersDB.set(username.toLowerCase(), {
+      username: username,
+      password: hashedPassword,
+      status: 'offline',
+      friends: []
+    });
 
-    console.log(`[Cuentas] Nuevo usuario registrado: ${username}`);
+    console.log(`[Cuentas] Nuevo usuario registrado localmente: ${username}`);
     res.status(201).json({ message: "¡Bro Account creada con éxito!", username });
 
   } catch (error) {
@@ -92,7 +85,7 @@ app.post('/api/accounts/register', async (req, res) => {
   }
 });
 
-// B. LOGIN DE CUENTA (Para Bro Talk / App C#)
+// B. LOGIN DE CUENTA
 app.post('/api/accounts/login', async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -101,7 +94,7 @@ app.post('/api/accounts/login', async (req, res) => {
       return res.status(400).json({ error: "Faltan usuario o contraseña." });
     }
 
-    const user = await User.findOne({ username });
+    const user = usersDB.get(username.toLowerCase());
     if (!user) {
       return res.status(401).json({ error: "Usuario o contraseña incorrectos." });
     }
@@ -111,11 +104,11 @@ app.post('/api/accounts/login', async (req, res) => {
       return res.status(401).json({ error: "Usuario o contraseña incorrectos." });
     }
 
-    console.log(`[Cuentas] Login exitoso: ${username}`);
+    console.log(`[Cuentas] Login exitoso: ${user.username}`);
     res.json({ 
       message: "Login correcto", 
       username: user.username,
-      token: "AQUÍ_GENERARIAMOS_UN_JWT_TOKEN_PARA_BROTALK_LUEGO"
+      token: "BRO_TALK_LOCAL_TOKEN"
     });
 
   } catch (error) {
@@ -125,7 +118,7 @@ app.post('/api/accounts/login', async (req, res) => {
 });
 
 // ===============================================
-// 3. BACKEND PARA BRO TALK (WebSockets en Tiempo Real)
+// 3. BACKEND PARA BRO TALK (WebSockets)
 // ===============================================
 io.on('connection', (socket) => {
   let authenticatedUser = null;
@@ -135,7 +128,7 @@ io.on('connection', (socket) => {
   socket.on('authenticate', async (data) => {
     try {
       const { username, password } = data;
-      const user = await User.findOne({ username });
+      const user = usersDB.get(username ? username.toLowerCase() : '');
 
       if (!user) {
         return socket.emit('auth_result', { success: false, error: 'Usuario no encontrado.' });
@@ -146,15 +139,11 @@ io.on('connection', (socket) => {
         return socket.emit('auth_result', { success: false, error: 'Contraseña incorrecta.' });
       }
 
-      // Autenticación correcta
       authenticatedUser = user.username;
       activeSockets.set(authenticatedUser, socket.id);
 
-      // Cambiar estado a ONLINE en la BD
       user.status = 'online';
-      await user.save();
 
-      // Responder al usuario con sus datos y lista de amigos
       socket.emit('auth_result', {
         success: true,
         username: user.username,
@@ -162,7 +151,6 @@ io.on('connection', (socket) => {
         status: user.status
       });
 
-      // Notificar a todos sus amigos que se conectó
       notifyFriendsStatus(user.username, user.friends, 'online');
       console.log(`[Bro Talk] Usuario autenticado y ONLINE: ${user.username}`);
 
@@ -189,7 +177,7 @@ io.on('connection', (socket) => {
       return socket.emit('error_msg', { message: 'Inicia sesión primero.' });
     }
 
-    const { targetUser, message, type } = data; // type: 'text' o 'nudge'
+    const { targetUser, message, type } = data;
     const targetSocketId = activeSockets.get(targetUser);
 
     const payload = {
@@ -200,24 +188,21 @@ io.on('connection', (socket) => {
     };
 
     if (targetSocketId) {
-      // Enviar directamente al socket del amigo
       io.to(targetSocketId).emit('receive_private_message', payload);
       socket.emit('message_sent_status', { targetUser, delivered: true });
     } else {
-      // El amigo está Offline
       socket.emit('message_sent_status', { targetUser, delivered: false, note: 'Usuario no está en línea' });
     }
   });
 
-  // D. CAMBIAR ESTADO (online, busy, away)
-  socket.on('change_status', async (data) => {
+  // D. CAMBIAR ESTADO
+  socket.on('change_status', (data) => {
     if (!authenticatedUser) return;
     const { newStatus } = data;
 
-    const user = await User.findOne({ username: authenticatedUser });
+    const user = usersDB.get(authenticatedUser.toLowerCase());
     if (user) {
       user.status = newStatus;
-      await user.save();
       notifyFriendsStatus(user.username, user.friends, newStatus);
     }
   });
@@ -228,14 +213,13 @@ io.on('connection', (socket) => {
   });
 
   // F. DESCONEXIÓN
-  socket.on('disconnect', async () => {
+  socket.on('disconnect', () => {
     if (authenticatedUser) {
       activeSockets.delete(authenticatedUser);
 
-      const user = await User.findOne({ username: authenticatedUser });
+      const user = usersDB.get(authenticatedUser.toLowerCase());
       if (user) {
         user.status = 'offline';
-        await user.save();
         notifyFriendsStatus(user.username, user.friends, 'offline');
       }
       console.log(`[Bro Talk] Usuario desconectado: ${authenticatedUser}`);
@@ -245,8 +229,7 @@ io.on('connection', (socket) => {
   });
 });
 
-// Función auxiliar para notificar cambios de estado a amigos
-async function notifyFriendsStatus(username, friendsList, status) {
+function notifyFriendsStatus(username, friendsList, status) {
   if (!friendsList || friendsList.length === 0) return;
   
   friendsList.forEach(friendName => {
@@ -262,5 +245,5 @@ async function notifyFriendsStatus(username, friendsList, status) {
 
 // Arrancar servidor
 server.listen(PORT, () => {
-  console.log(`🚀 Servidor central de Bro OS corriendo en el puerto ${PORT}`);
+  console.log(`🚀 Servidor Bro OS y Bro Talk corriendo directamente en el puerto ${PORT}`);
 });
