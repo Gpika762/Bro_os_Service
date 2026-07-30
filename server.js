@@ -49,8 +49,27 @@ app.get('/api/updates/check', requireUpdateToken, (req, res) => {
 });
 
 // ===============================================
-// 2. CUENTAS - SISTEMA LOCAL
+// 2. CUENTAS - SISTEMA LOCAL & APARTADO DE BÚSQUEDA
 // ===============================================
+
+// APARTADO NUEVO: BÚSQUEDA / CONSULTA DE CUENTA POR NOMBRE
+app.get('/api/accounts/lookup/:username', (req, res) => {
+  const { username } = req.params;
+  if (!username) {
+    return res.status(400).json({ exists: false, error: "Nombre de usuario requerido." });
+  }
+
+  const user = usersDB.get(username.toLowerCase());
+  if (!user) {
+    return res.status(404).json({ exists: false, message: "Usuario no encontrado." });
+  }
+
+  res.json({
+    exists: true,
+    username: user.username,
+    status: user.status
+  });
+});
 
 // A. REGISTRO DE NUEVA CUENTA
 app.post('/api/accounts/register', async (req, res) => {
@@ -85,7 +104,7 @@ app.post('/api/accounts/register', async (req, res) => {
   }
 });
 
-// B. LOGIN DE CUENTA
+// B. LOGIN DE CUENTA (REST API)
 app.post('/api/accounts/login', async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -124,19 +143,35 @@ io.on('connection', (socket) => {
   let authenticatedUser = null;
   console.log(`[Bro Talk] Nueva conexión WebSocket ID: ${socket.id}`);
 
-  // A. AUTENTICAR CONEXIÓN DE SOCKET
+  // A. AUTENTICAR CONEXIÓN DE SOCKET (OPCIÓN 1: AUTO-REGISTRO EN EL AIRE)
   socket.on('authenticate', async (data) => {
     try {
       const { username, password } = data;
-      const user = usersDB.get(username ? username.toLowerCase() : '');
-
-      if (!user) {
-        return socket.emit('auth_result', { success: false, error: 'Usuario no encontrado.' });
+      if (!username || !password) {
+        return socket.emit('auth_result', { success: false, error: 'Faltan usuario o contraseña.' });
       }
 
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        return socket.emit('auth_result', { success: false, error: 'Contraseña incorrecta.' });
+      const key = username.toLowerCase();
+      let user = usersDB.get(key);
+
+      // SI EL USUARIO NO EXISTE EN LA MEMORIA, LO CREAMOS AUTOMÁTICAMENTE
+      if (!user) {
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+        user = {
+          username: username,
+          password: hashedPassword,
+          status: 'offline',
+          friends: []
+        };
+        usersDB.set(key, user);
+        console.log(`[Bro Talk] 🆕 Usuario creado automáticamente al autenticar: ${username}`);
+      } else {
+        // SI YA EXISTE, VALIDAMOS LA CONTRASEÑA
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+          return socket.emit('auth_result', { success: false, error: 'Contraseña incorrecta.' });
+        }
       }
 
       authenticatedUser = user.username;
