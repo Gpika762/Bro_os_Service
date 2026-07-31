@@ -19,10 +19,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 // ===============================================
 // ALMACENAMIENTO LOCAL EN MEMORIA (Sin MongoDB)
 // ===============================================
-// Formato: { "nombreUsuario": { username: "...", password: "hashPassword", status: "offline", friends: [] } }
+// Formato: { "nombreusuario": { username: "...", password: "hashPassword", status: "offline", friends: [] } }
 const usersDB = new Map();
 
-// Diccionario de sockets activos: { "nombreUsuario": "socket.id" }
+// Diccionario de sockets activos: { "NombreUsuario": "socket.id" }
 const activeSockets = new Map();
 
 console.log('⚡ Servidor iniciado en modo Local/Memoria (Sin MongoDB)');
@@ -52,7 +52,7 @@ app.get('/api/updates/check', requireUpdateToken, (req, res) => {
 // 2. CUENTAS - SISTEMA LOCAL & APARTADO DE BÚSQUEDA
 // ===============================================
 
-// APARTADO NUEVO: BÚSQUEDA / CONSULTA DE CUENTA POR NOMBRE
+// BÚSQUEDA / CONSULTA DE CUENTA POR NOMBRE
 app.get('/api/accounts/lookup/:username', (req, res) => {
   const { username } = req.params;
   if (!username) {
@@ -143,47 +143,53 @@ io.on('connection', (socket) => {
   let authenticatedUser = null;
   console.log(`[Bro Talk] Nueva conexión WebSocket ID: ${socket.id}`);
 
-  // A. AUTENTICAR CONEXIÓN DE SOCKET (OPCIÓN 1: AUTO-REGISTRO EN EL AIRE)
+  // A. AUTENTICAR CONEXIÓN DE SOCKET (VERIFICA O RECHAZA STRICTAMENTE)
   socket.on('authenticate', async (data) => {
     try {
-      const { username, password } = data;
+      const { username, password } = data || {};
       if (!username || !password) {
-        return socket.emit('auth_result', { success: false, error: 'Faltan usuario o contraseña.' });
+        return socket.emit('auth_result', { 
+          success: false, 
+          error: 'Faltan usuario o contraseña.' 
+        });
       }
 
       const key = username.toLowerCase();
-      let user = usersDB.get(key);
+      const user = usersDB.get(key);
 
-      // SI EL USUARIO NO EXISTE EN LA MEMORIA, LO CREAMOS AUTOMÁTICAMENTE
+      // VERIFICACIÓN DE EXISTENCIA DE CUENTA
       if (!user) {
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
-        user = {
-          username: username,
-          password: hashedPassword,
-          status: 'offline',
-          friends: []
-        };
-        usersDB.set(key, user);
-        console.log(`[Bro Talk] 🆕 Usuario creado automáticamente al autenticar: ${username}`);
-      } else {
-        // SI YA EXISTE, VALIDAMOS LA CONTRASEÑA
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-          return socket.emit('auth_result', { success: false, error: 'Contraseña incorrecta.' });
-        }
+        console.log(`[Bro Talk AUTH RECHAZADA] El usuario "${username}" no existe.`);
+        return socket.emit('auth_result', { 
+          success: false, 
+          error: 'El usuario no existe. Regístrate primero.' 
+        });
       }
 
+      // VALIDACIÓN DE CONTRASEÑA
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        console.log(`[Bro Talk AUTH RECHAZADA] Contraseña incorrecta para "${username}".`);
+        return socket.emit('auth_result', { 
+          success: false, 
+          error: 'Usuario o contraseña incorrectos.' 
+        });
+      }
+
+      // LOGIN EXITOSO
       authenticatedUser = user.username;
+      socket.username = user.username;
       activeSockets.set(authenticatedUser, socket.id);
 
       user.status = 'online';
 
       socket.emit('auth_result', {
         success: true,
+        user: user.username,
         username: user.username,
         friends: user.friends,
-        status: user.status
+        status: user.status,
+        error: null
       });
 
       notifyFriendsStatus(user.username, user.friends, 'online');
@@ -191,11 +197,63 @@ io.on('connection', (socket) => {
 
     } catch (err) {
       console.error('Error en autenticación WebSocket:', err);
-      socket.emit('auth_result', { success: false, error: 'Error en el servidor.' });
+      socket.emit('auth_result', { success: false, error: 'Error interno del servidor.' });
     }
   });
 
-  // B. CHAT GENERAL (Broadcast público)
+  // B. AGREGAR AMIGO (Manejo mutuo)
+  socket.on('add_friend', (data) => {
+    if (!authenticatedUser) return;
+    const { friendUsername } = data || {};
+
+    if (!friendUsername) {
+      return socket.emit('add_friend_result', { success: false, error: "Nombre de amigo no provisto." });
+    }
+
+    const currentKey = authenticatedUser.toLowerCase();
+    const friendKey = friendUsername.toLowerCase();
+
+    const currentUser = usersDB.get(currentKey);
+    const friendUser = usersDB.get(friendKey);
+
+    if (friendUser) {
+      if (currentKey === friendKey) {
+        return socket.emit('add_friend_result', { success: false, error: "No puedes agregarte a ti mismo." });
+      }
+
+      // Agregar mutuo a la base de datos local
+      if (!currentUser.friends.includes(friendUser.username)) {
+        currentUser.friends.push(friendUser.username);
+      }
+      if (!friendUser.friends.includes(currentUser.username)) {
+        friendUser.friends.push(currentUser.username);
+      }
+
+      socket.emit('add_friend_result', {
+        success: true,
+        friend: friendUser.username,
+        error: null
+      });
+
+      // Si el amigo está online, notificarle el cambio
+      const friendSocketId = activeSockets.get(friendUser.username);
+      if (friendSocketId) {
+        io.to(friendSocketId).emit('friend_status_change', {
+          friend: currentUser.username,
+          friendUsername: currentUser.username,
+          newStatus: currentUser.status
+        });
+      }
+    } else {
+      socket.emit('add_friend_result', {
+        success: false,
+        friend: friendUsername,
+        error: "El usuario especificado no existe."
+      });
+    }
+  });
+
+  // C. CHAT GENERAL (Broadcast público)
   socket.on('send_message', (data) => {
     console.log(`[Bro Talk Public] ${data.username}: ${data.message}`);
     
@@ -206,20 +264,21 @@ io.on('connection', (socket) => {
     });
   });
 
-  // C. MENSAJES PRIVADOS Y ZUMBIDOS
+  // D. MENSAJES PRIVADOS Y ZUMBIDOS
   socket.on('send_private_message', (data) => {
     if (!authenticatedUser) {
       return socket.emit('error_msg', { message: 'Inicia sesión primero.' });
     }
 
-    const { targetUser, message, type } = data;
+    const { targetUser, message, text, type } = data || {};
     const targetSocketId = activeSockets.get(targetUser);
 
     const payload = {
       from: authenticatedUser,
-      message: message,
+      message: message || text || '',
+      text: message || text || '',
       type: type || 'text',
-      timestamp: new Date().toLocaleTimeString()
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
     if (targetSocketId) {
@@ -227,27 +286,33 @@ io.on('connection', (socket) => {
       socket.emit('message_sent_status', { targetUser, delivered: true });
     } else {
       socket.emit('message_sent_status', { targetUser, delivered: false, note: 'Usuario no está en línea' });
+      // Notificación de estado offline al emisor
+      socket.emit('friend_status_change', {
+        friend: targetUser,
+        friendUsername: targetUser,
+        newStatus: 'offline'
+      });
     }
   });
 
-  // D. CAMBIAR ESTADO
+  // E. CAMBIAR ESTADO
   socket.on('change_status', (data) => {
     if (!authenticatedUser) return;
-    const { newStatus } = data;
+    const { newStatus } = data || {};
 
     const user = usersDB.get(authenticatedUser.toLowerCase());
-    if (user) {
+    if (user && newStatus) {
       user.status = newStatus;
       notifyFriendsStatus(user.username, user.friends, newStatus);
     }
   });
 
-  // E. HEARTBEAT / PING
+  // F. HEARTBEAT / PING
   socket.on('ping_check', () => {
     socket.emit('pong_check', { timestamp: Date.now() });
   });
 
-  // F. DESCONEXIÓN
+  // G. DESCONEXIÓN
   socket.on('disconnect', () => {
     if (authenticatedUser) {
       activeSockets.delete(authenticatedUser);
@@ -271,6 +336,7 @@ function notifyFriendsStatus(username, friendsList, status) {
     const friendSocketId = activeSockets.get(friendName);
     if (friendSocketId) {
       io.to(friendSocketId).emit('friend_status_change', {
+        friend: username,
         friendUsername: username,
         newStatus: status
       });
